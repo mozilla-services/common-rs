@@ -1,0 +1,16 @@
+[package]
+name = "mozsvc-common"
+version = "0.1.0"
+authors = ["Philip Jenvey <pjenvey@underboss.org>"]
+description = "Common utilities for Mozilla server side apps"
+repository = "https://github.com/mozilla-services/common-rs/"
+homepage = "https://github.com/mozilla-services/common-rs/"
+license = "MPL-2.0"
+
+[badges]
+travis-ci = { repository = "mozilla-services/slog-mozlog-json" }
+
+[dependencies]
+lazy_static = "1.0"
+hostname = "0.1.4"
+reqwest = "0.8"
