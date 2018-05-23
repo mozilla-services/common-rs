@@ -8,9 +8,9 @@ homepage = "https://github.com/mozilla-services/common-rs/"
 license = "MPL-2.0"
 
 [badges]
-travis-ci = { repository = "mozilla-services/slog-mozlog-json" }
+travis-ci = { repository = "mozilla-services/common-rs" }
 
 [dependencies]
 lazy_static = "1.0"
-hostname = "0.1.4"
+hostname = "0.1"
 reqwest = "0.8"
