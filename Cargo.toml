@@ -13,4 +13,4 @@ travis-ci = { repository = "mozilla-services/common-rs" }
 [dependencies]
 lazy_static = "1.0"
 hostname = "0.1"
-reqwest = "0.8"
+reqwest = "0.9"
