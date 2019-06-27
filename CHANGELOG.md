@@ -1,3 +1,13 @@
+<a name="0.1.1"></a>
+## 0.1.1 (2019-06-27)
+
+
+#### Chore
+
+*   update reqwest to 0.9 ([23539f6a](https://github.com/mozilla-services/common-rs/commit/23539f6a8c87266e04a2311babeb9209113ccb11))
+
+
+
 <a name="0.1.0"></a>
 ## 0.1.0 (2018-05-23)
 
