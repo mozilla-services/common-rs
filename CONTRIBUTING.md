@@ -4,18 +4,40 @@ Anyone is welcome to contribute to this project. Feel free to get in touch with
 other community members on IRC, the mailing list or through issues here on
 GitHub.
 
-[See the README](/README.md) for contact information.
+[See the README](./README.md) for contact information.
 
 ## Bug Reports
 
 You can file issues here on GitHub. Please try to include as much information as
 you can and under what conditions you saw the issue.
 
+## Code Structure
+
+This repo is structured as a workspace, and each crate in the repository is
+expected to be published on Crates.io.
+
+## Dependencies
+
+Intra-repo dependencies may be specified using the `path` attribute, however
+Crates.io requires that all dependencies also be published to Crates.io, and be
+specified with a version. The path will be used for local development, and the
+version will be used for publishing. See [the Crates.io guide][] for more
+details.
+
+Intra-repo **dev** dependencies do not require a version specifier.
+
+External dependencies should use semver specifiers, so as to be compatible with
+as broad a range of packages as possible.
+
+[the crates.io guide]:
+  https://doc.rust-lang.org/cargo/reference/specifying-dependencies.html#multiple-locations
+
 ## Sending Pull Requests
 
 Patches should be submitted as pull requests (PR).
 
 Before submitting a PR:
+
 - Your code must run and pass all the automated tests before you submit your PR
   for review. "Work in progress" pull requests are allowed to be submitted, but
   should be clearly labeled as such and should not be merged until all tests
@@ -24,8 +46,9 @@ Before submitting a PR:
   your reviewer's responsibility to ensure your patch includes adequate tests.
 
 When submitting a PR:
+
 - You agree to license your code under the project's open source license
-  ([MPL 2.0](/LICENSE)).
+  ([MPL 2.0](./LICENSE)).
 - Base your branch off the current `master`.
 - Add both your code and new tests if relevant.
 - Sign your git commit.
@@ -34,7 +57,7 @@ When submitting a PR:
 - Please do not include merge commits in pull requests; include only commits
   with the new relevant code.
 
-See the main [README.md](/README.md) for information on prerequisites,
+See the main [README.md](./README.md) for information on prerequisites,
 installing, running and testing.
 
 ## Code Review
