@@ -12,19 +12,3 @@
 [rustdoc]: https://docs.rs/mozsvc-common
 
 A common set of utilities for Mozilla server side applications.
-
-This repo is structured as a workspace, and each crate is expected to be
-published.
-
-# Dependencies
-
-Intra-repo dependencies may be specified using the `path` attribute, however
-Crates.io requires that all dependencies also be published to Crates.io, and be
-specified with a version. The path will be used for local development, and the
-version will be used for publishing. See [the Crates.io guide][] for more
-details.
-
-Intra-repo **dev** dependencies do not require a version specifier.
-
-[the crates.io guide]:
-  https://doc.rust-lang.org/cargo/reference/specifying-dependencies.html#multiple-locations

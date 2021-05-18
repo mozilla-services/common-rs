@@ -1,0 +1,55 @@
+version: 2.1
+
+workflows:
+  version: 2
+  build-test:
+    jobs:
+      - rustfmt
+      - audit
+      - per-crate:
+          name: mozsvc-common
+          crate: mozsvc-common
+
+jobs:
+  per-crate:
+    docker:
+      - image: mozilla/cidockerbases:rust-latest
+    parameters:
+      crate:
+        description: The crate to build and test. Passed to cargo with `-p`.
+        type: string
+    environment:
+      RUST_BACKTRACE: 1
+      CRATE: << parameters.crate >>
+    steps:
+      - checkout
+      - run:
+          name: Clippy
+          command: cargo clippy -p << parameters.crate >> -- -D warnings
+      - run:
+          name: Cargo build
+          command: cargo build -p << parameters.crate >>
+      - run:
+          name: Cargo test
+          command: cargo test -p << parameters.crate >> --verbose
+      - run:
+          name: Cargo Doc
+          command: cargo doc -p << parameters.crate >>
+
+  rustfmt:
+    docker:
+      - image: mozilla/cidockerbases:rust-latest
+    steps:
+      - checkout
+      - run:
+          name: Rustfmt
+          command: cargo fmt --all -- --check
+
+  audit:
+    docker:
+      - image: mozilla/cidockerbases:rust-latest
+    steps:
+      - checkout
+      - run:
+          name: Cargo audit
+          command: cargo audit
