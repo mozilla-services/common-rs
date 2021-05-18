@@ -17,3 +17,14 @@ A common set of utilities for Mozilla server side applications.
 [crates.io::mozsvc-common]: https://crates.io/crates/mozsvc-common
 [docs::mozsvc-common]: https://docs.rs/mozsvc-common
 [rustdoc-badge::mozsvc-common]: https://img.shields.io/docsrs/mozsvc-common
+
+- [`tracing-actix-web-mozlog`](./tree/master/tracing-actix-web-mozlog)
+  [![version-badge::tracing-actix-web-mozlog]][crates.io::tracing-actix-web-mozlog]
+  [![rustdoc-badge::tracing-actix-web-mozlog]][docs::tracing-actix-web-mozlog]
+
+  Integration between Tracing, Actix, and MozLog.
+
+[version-badge::tracing-actix-web-mozlog]: https://img.shields.io/crates/v/tracing-actix-web-mozlog.svg
+[crates.io::tracing-actix-web-mozlog]: https://crates.io/crates/tracing-actix-web-mozlog
+[docs::tracing-actix-web-mozlog]: https://docs.rs/tracing-actix-web-mozlog
+[rustdoc-badge::tracing-actix-web-mozlog]: https://img.shields.io/docsrs/tracing-actix-web-mozlog

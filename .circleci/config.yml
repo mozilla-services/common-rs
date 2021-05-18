@@ -9,6 +9,9 @@ workflows:
       - per-crate:
           name: mozsvc-common
           crate: mozsvc-common
+      - per-crate:
+          name: tracing-actix-web-mozlog
+          crate: tracing-actix-web-mozlog
 
 jobs:
   per-crate:
