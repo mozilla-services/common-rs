@@ -1,4 +1,5 @@
 [workspace]
 members = [
-  "mozsvc-common"
+  "mozsvc-common",
+  "tracing-actix-web-mozlog",
 ]
