@@ -15,7 +15,7 @@
 [docs::tracing-actix-web-mozlog]: https://docs.rs/tracing-actix-web-mozlog
 [rustdoc-badge::tracing-actix-web-mozlog]: https://img.shields.io/docsrs/tracing-actix-web-mozlog
 
-Support for [tracing][] in [actix-web][] apps that target [MozLog][].
+Support for [tracing][] in [actix-web][] apps that target Mozilla's [MozLog][].
 
 [tracing]: https://tracing.rs/tracing/
 [actix-web]: https://actix.rs/
