@@ -1,25 +1,148 @@
 //! Loggers for the request/response cycle.
 
-use std::time::Instant;
+use std::{
+    future::Future,
+    pin::Pin,
+    task::{Context, Poll},
+    time::Instant,
+};
 
-use actix_web::{dev::ServiceResponse, HttpMessage};
-use tracing::Span;
+use actix_service::{Service, Transform};
+use actix_web::{
+    dev::{ServiceRequest, ServiceResponse},
+    HttpMessage,
+};
+use tracing::{Dispatch, Span};
 use tracing_actix_web::{RequestId, RootSpanBuilder, TracingLogger};
+use tracing_futures::WithSubscriber;
 
-/// Middleware that implements the request/response cycle logging required by MozLog.
-pub type MozLogMiddleware = TracingLogger<MozLogRootSpanBuilder>;
+/// Middleware factory that implements the request/response cycle logging
+/// required by MozLog.
+///
+/// To make sure that the correct Tracing context is captured, it is important to
+/// create the MozLog middleware outside of the `HttpServer::new` closure. The
+/// middleware will capture the current Tracing subscriber, and make sure to
+/// apply it to each worker as needed.
+///
+/// ```
+/// use tracing_actix_web_mozlog::MozLog;
+/// use actix_web::{HttpServer, App};
+///
+/// let moz_log = MozLog::default();
+///
+/// let server = HttpServer::new(move || {
+///     App::new()
+///         .wrap(moz_log.clone())
+/// });
+/// ```
+///
+/// This middleware will emit `request.summary` events for each request as it is
+/// completed, including timing information.
+#[derive(Clone)]
+pub struct MozLog {
+    dispatch: Dispatch,
+    tracing_logger: TracingLogger<MozLogRootSpanBuilder>,
+}
+
+impl Default for MozLog {
+    fn default() -> Self {
+        let mut dispatch = None;
+        tracing::dispatcher::get_default(|d| dispatch = Some(d.clone()));
+        Self {
+            dispatch: dispatch.unwrap(),
+            tracing_logger: TracingLogger::new(),
+        }
+    }
+}
+
+impl<S, B> Transform<S, ServiceRequest> for MozLog
+where
+    S: Service<ServiceRequest, Response = ServiceResponse<B>, Error = actix_web::Error>,
+    S::Future: 'static,
+    B: 'static,
+    S: 'static,
+{
+    type Response = ServiceResponse<B>;
+    type Error = actix_web::Error;
+    type Transform = MozLogMiddleware<
+        <TracingLogger<MozLogRootSpanBuilder> as Transform<S, ServiceRequest>>::Transform,
+    >;
+    type InitError = ();
+    type Future = MozLogTransform<S, B>;
+
+    fn new_transform(&self, service: S) -> Self::Future {
+        MozLogTransform {
+            inner: Box::pin(self.tracing_logger.new_transform(service)),
+            dispatch: self.dispatch.clone(),
+        }
+    }
+}
+
+type TracingLoggerMiddleware<S> =
+    <TracingLogger<MozLogRootSpanBuilder> as Transform<S, ServiceRequest>>::Transform;
+
+type ServiceFuture<T, E> = Pin<Box<dyn Future<Output = Result<T, E>>>>;
+
+pub struct MozLogTransform<S, B>
+where
+    S: Service<ServiceRequest, Response = ServiceResponse<B>, Error = actix_web::Error>,
+    S::Future: 'static,
+    B: 'static,
+{
+    dispatch: Dispatch,
+    inner: Pin<Box<dyn Future<Output = Result<TracingLoggerMiddleware<S>, ()>>>>,
+}
+
+impl<S, B> Future for MozLogTransform<S, B>
+where
+    S: Service<ServiceRequest, Response = ServiceResponse<B>, Error = actix_web::Error>,
+    S::Future: 'static,
+    B: 'static,
+{
+    type Output = Result<MozLogMiddleware<TracingLoggerMiddleware<S>>, ()>;
+
+    fn poll(mut self: Pin<&mut Self>, cx: &mut Context<'_>) -> Poll<Self::Output> {
+        match self.inner.as_mut().poll(cx) {
+            Poll::Ready(Ok(inner)) => Poll::Ready(Ok(MozLogMiddleware {
+                service: inner,
+                dispatch: self.dispatch.clone(),
+            })),
+            Poll::Ready(Err(_)) => Poll::Ready(Err(())),
+            Poll::Pending => Poll::Pending,
+        }
+    }
+}
+
+pub struct MozLogMiddleware<S> {
+    service: S,
+    dispatch: Dispatch,
+}
+
+impl<S, B> Service<ServiceRequest> for MozLogMiddleware<S>
+where
+    S: Service<ServiceRequest, Response = ServiceResponse<B>, Error = actix_web::Error>,
+    S::Future: 'static,
+    B: 'static,
+{
+    type Response = ServiceResponse<B>;
+    type Error = actix_web::Error;
+    type Future = ServiceFuture<Self::Response, Self::Error>;
+
+    fn poll_ready(&self, cx: &mut Context<'_>) -> Poll<Result<(), Self::Error>> {
+        self.service.poll_ready(cx)
+    }
+
+    fn call(&self, req: ServiceRequest) -> Self::Future {
+        Box::pin(
+            self.service
+                .call(req)
+                .with_subscriber(self.dispatch.clone()),
+        )
+    }
+}
 
 /// A root span builder for tracing_actix_web to customize the extra fields we
 /// log with requests, and to log an event when requests end.
-///
-/// # Examples
-///
-/// ```
-/// use tracing_actix_web_mozlog::MozLogMiddleware;
-/// use actix_web::App;
-/// App::new()
-///     .wrap(MozLogMiddleware::new());
-/// ```
 pub struct MozLogRootSpanBuilder;
 
 struct RequestStart(Instant);
