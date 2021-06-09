@@ -7,7 +7,7 @@ use serde_json::json;
 use std::fmt::Display;
 
 use crate::utils::{log_test_async, LogWatcher};
-use tracing_actix_web_mozlog::{MozLogMessage, MozLogMiddleware};
+use tracing_actix_web_mozlog::{MozLog, MozLogMessage};
 
 #[get("/{status}")]
 async fn handler_status_echo(status: web::Path<u16>) -> HttpResponse {
@@ -33,7 +33,7 @@ async fn handler_error() -> Result<HttpResponse, TestError> {
 #[actix_rt::test]
 async fn test_it_logs_requests() {
     let mut log_watcher: LogWatcher = log_test_async(|| async {
-        let middleware = MozLogMiddleware::new();
+        let middleware = MozLog::default();
         let app =
             test::init_service(App::new().wrap(middleware).service(handler_status_echo)).await;
 
@@ -80,7 +80,7 @@ async fn test_it_logs_requests() {
 #[actix_rt::test]
 async fn test_request_summary_has_recommended_fields() {
     let mut log_watcher: LogWatcher = log_test_async(|| async {
-        let middleware = MozLogMiddleware::new();
+        let middleware = MozLog::default();
         let app =
             test::init_service(App::new().wrap(middleware).service(handler_status_echo)).await;
 
@@ -125,7 +125,7 @@ async fn test_request_summary_has_recommended_fields() {
 #[actix_rt::test]
 async fn test_it_logs_controlled_errors() {
     let mut log_watcher: LogWatcher = log_test_async(|| async {
-        let middleware = MozLogMiddleware::new();
+        let middleware = MozLog::default();
         let app = test::init_service(App::new().wrap(middleware).service(handler_error)).await;
         let req = test::TestRequest::with_uri("/").to_request();
         let res = app.call(req).await.expect("request handler error");

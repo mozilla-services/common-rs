@@ -32,19 +32,23 @@
 //!
 //! ## Middleware
 //!
-//! To use the middleware, register it while creating your app, as normal:
+//! To make sure that the correct Tracing context is captured, it is important to
+//! create the MozLog middleware outside of the `HttpServer::new` closure:
 //!
 //! ```
-//! use tracing_actix_web_mozlog::MozLogMiddleware;
-//! use actix_web::App;
+//! use tracing_actix_web_mozlog::MozLog;
+//! use actix_web::{HttpServer, App};
 //!
-//! App::new()
-//!     .wrap(MozLogMiddleware::new());
+//! let moz_log = MozLog::default();
+//!
+//! let server = HttpServer::new(move || {
+//!     App::new()
+//!         .wrap(moz_log.clone())
+//! });
 //! ```
 //!
 //! This middleware will emit `request.summary` events for each request as it is
-//! completed, including timing information. For more information about
-//! customizing these events, see [`MozLogMiddleware`]'s documentation.
+//! completed, including timing information.
 //!
 //! ## Message Types
 //!
@@ -72,7 +76,7 @@
 //! ## MozLog extensions
 //!
 //! In addition to all standard MozLog fields, this crate always adds a `spans`
-//! field messages. This contains a comma-separated list of the names of the
+//! field to messages. This contains a comma-separated list of the names of the
 //! spans enclosing the event, with the outermost span coming first. Top-level
 //! events will have an empty string for this value.
 
@@ -82,7 +86,7 @@
 mod middleware;
 mod subscriber;
 
-pub use crate::middleware::MozLogMiddleware;
+pub use crate::middleware::MozLog;
 pub use crate::subscriber::{MozLogFormatLayer, MozLogMessage};
 
 /// A layer to collect information about Tracing spans and provide it to other layers.
