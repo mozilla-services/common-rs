@@ -1,6 +1,5 @@
-use actix_http::ResponseError;
 use actix_service::Service;
-use actix_web::{get, http::StatusCode, test, web, App, HttpResponse};
+use actix_web::{get, http::StatusCode, test, web, App, HttpResponse, ResponseError};
 use maplit::hashmap;
 use pretty_assertions::assert_eq;
 use serde_json::json;
