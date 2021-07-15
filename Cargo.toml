@@ -2,4 +2,5 @@
 members = [
   "mozsvc-common",
   "tracing-actix-web-mozlog",
+  "actix-web-location",
 ]
