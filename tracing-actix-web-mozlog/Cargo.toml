@@ -25,6 +25,6 @@ tracing-futures = { version = "^0.2", features = ["std-future"] }
 [dev-dependencies]
 maplit = "^1"
 pretty_assertions = "^0.7"
-jsonschema = "^0.9"
+jsonschema = "^0.11"
 lazy_static = "^1.4"
 actix-rt = "^2.2.0"
