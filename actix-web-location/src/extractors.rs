@@ -55,10 +55,14 @@ impl FromRequest for Location {
                     break;
                 }
             }
+
+            #[cfg(feature = "cadence")]
+            let metrics = config.metrics.as_ref();
+
             result.unwrap_or_else(|| {
                 #[cfg(feature = "cadence")]
                 {
-                    if let Some(metrics) = config.metrics.as_ref() {
+                    if let Some(metrics) = metrics {
                         metrics
                             .incr_with_tags("location.unknown.city")
                             .with_tag("provider", "none")
