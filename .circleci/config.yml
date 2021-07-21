@@ -12,6 +12,9 @@ workflows:
       - per-crate:
           name: tracing-actix-web-mozlog
           crate: tracing-actix-web-mozlog
+      - per-crate:
+          name: actix-web-location
+          crate: actix-web-location
 
 jobs:
   per-crate:
@@ -28,16 +31,16 @@ jobs:
       - checkout
       - run:
           name: Clippy
-          command: cargo clippy -p << parameters.crate >> -- -D warnings
+          command: cargo clippy -p << parameters.crate >> --all-features -- -D warnings
       - run:
           name: Cargo build
-          command: cargo build -p << parameters.crate >>
+          command: cargo build -p << parameters.crate >> --all-features
       - run:
           name: Cargo test
-          command: cargo test -p << parameters.crate >> --verbose
+          command: cargo test -p << parameters.crate >> --verbose --all-features
       - run:
           name: Cargo Doc
-          command: cargo doc -p << parameters.crate >>
+          command: cargo doc -p << parameters.crate >> --all-features
 
   rustfmt:
     docker:
