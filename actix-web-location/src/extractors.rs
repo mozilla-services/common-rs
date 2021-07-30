@@ -28,21 +28,21 @@ impl FromRequest for Location {
                         if let Some(metrics) = config.metrics.as_ref() {
                             if provider.expect_city() && location.city.is_none() {
                                 metrics
-                                    .incr_with_tags("location.unknown.city")
+                                    .count_with_tags("location.unknown.city", 1)
                                     .with_tag("provider", provider.name())
                                     .try_send()
                                     .ok();
                             }
                             if provider.expect_region() && location.region.is_none() {
                                 metrics
-                                    .incr_with_tags("location.unknown.region")
+                                    .count_with_tags("location.unknown.region", 1)
                                     .with_tag("provider", provider.name())
                                     .try_send()
                                     .ok();
                             }
                             if provider.expect_country() && location.country.is_none() {
                                 metrics
-                                    .incr_with_tags("location.unknown.country")
+                                    .count_with_tags("location.unknown.country", 1)
                                     .with_tag("provider", provider.name())
                                     .try_send()
                                     .ok();
@@ -64,17 +64,17 @@ impl FromRequest for Location {
                 {
                     if let Some(metrics) = metrics {
                         metrics
-                            .incr_with_tags("location.unknown.city")
+                            .count_with_tags("location.unknown.city", 1)
                             .with_tag("provider", "none")
                             .try_send()
                             .ok();
                         metrics
-                            .incr_with_tags("location.unknown.region")
+                            .count_with_tags("location.unknown.region", 1)
                             .with_tag("provider", "none")
                             .try_send()
                             .ok();
                         metrics
-                            .incr_with_tags("location.unknown.country")
+                            .count_with_tags("location.unknown.country", 1)
                             .with_tag("provider", "none")
                             .try_send()
                             .ok();
@@ -99,7 +99,7 @@ pub struct LocationConfig {
 
     /// An optional sink to send metrics to.
     #[cfg(feature = "cadence")]
-    metrics: Arc<Option<Box<dyn cadence::Counted + Send + Sync>>>,
+    metrics: Arc<Option<Box<dyn cadence::Counted<i64> + Send + Sync>>>,
 }
 
 lazy_static! {
@@ -115,7 +115,10 @@ impl LocationConfig {
 
     /// Add a metrics sink to this configuration. It will be wrapped into an `Arc<Option<Box<T>>>`.
     #[cfg(feature = "cadence")]
-    pub fn with_metrics<M: cadence::Counted + Send + Sync + 'static>(mut self, metrics: M) -> Self {
+    pub fn with_metrics<M: cadence::Counted<i64> + Send + Sync + 'static>(
+        mut self,
+        metrics: M,
+    ) -> Self {
         self.metrics = Arc::new(Some(Box::new(metrics)));
         self
     }

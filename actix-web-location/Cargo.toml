@@ -1,6 +1,6 @@
 [package]
 name = "actix-web-location"
-version = "0.1.0"
+version = "0.1.1"
 edition = "2018"
 
 [dependencies]
@@ -12,7 +12,7 @@ anyhow = "1"
 async-trait = "0.1"
 lazy_static = "1"
 maxminddb = { version = "0.20", optional = true}
-cadence = { version = "0.25", optional = true}
+cadence = { version = "0.26", optional = true}
 
 [features]
 maxmind = ["maxminddb"]
