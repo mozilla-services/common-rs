@@ -1,0 +1,21 @@
+[package]
+name = "actix-web-location"
+version = "0.1.0"
+edition = "2018"
+
+[dependencies]
+serde = { version = "1", optional = true, features = ["derive"] }
+actix-web = "3"
+futures = "0.3"
+thiserror = "1"
+anyhow = "1"
+async-trait = "0.1"
+lazy_static = "1"
+maxminddb = { version = "0.20", optional = true}
+cadence = { version = "0.25", optional = true}
+
+[features]
+maxmind = ["maxminddb"]
+
+[dev_dependencies]
+actix-rt = "2.2"
