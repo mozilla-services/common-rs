@@ -15,7 +15,6 @@ maxminddb = { version = "0.20", optional = true}
 cadence = { version = "0.25", optional = true}
 
 [features]
-default = []
 maxmind = ["maxminddb"]
 
 [dev_dependencies]

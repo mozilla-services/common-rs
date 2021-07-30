@@ -100,8 +100,8 @@ impl LocationBuilder {
 }
 
 #[cfg(feature = "maxmind")]
-impl<'a> From<City<'a>> for LocationBuilder {
-    fn from(val: City<'a>) -> Self {
+impl<'a> From<(City<'a>, &str)> for LocationBuilder {
+    fn from((val, preferred_language): (City<'a>, &str)) -> Self {
         Location::build()
             .country(
                 val.country
@@ -121,7 +121,7 @@ impl<'a> From<City<'a>> for LocationBuilder {
             .city(
                 val.city
                     .and_then(|city| city.names)
-                    .and_then(|names| names.get("en").map(|name| name.to_string()))
+                    .and_then(|names| names.get(preferred_language).map(|name| name.to_string()))
                     .map(|name| (*name).to_string()),
             )
             .dma(val.location.and_then(|location| location.metro_code))
@@ -183,5 +183,31 @@ mod tests {
         assert_eq!(location.region(), "");
         assert_eq!(location.city(), "");
         assert_eq!(location.dma(), 0);
+    }
+
+    #[cfg(maxmind)]
+    #[actix_rt::test]
+    async fn known_ip() {
+        use maxminddb::geoip2::model::City;
+
+        use crate::providers::tests::maxmind::{MMDB_LOC, TEST_ADDR_1};
+
+        let mmdb = maxminddb::Reader::open_readfile(path)
+            .map_err(|e| Error::Setup(anyhow!("{}", e)))
+            .expect("could not create mmdb");
+        let db_value = mmdb.lookup::<City>(TEST_ADDR_1);
+        let location: Location = (db_value, "en").into();
+
+        assert_eq!(
+            location,
+            Location::build()
+                .country("US".to_string())
+                .region("WA".to_string())
+                .city("Milton".to_string())
+                .dma(819)
+                .provider("maxmind".to_string())
+                .finish()
+                .expect("bug when creating location")
+        );
     }
 }

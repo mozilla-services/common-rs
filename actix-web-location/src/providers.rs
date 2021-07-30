@@ -96,7 +96,6 @@ mod maxmind {
         }
     }
 
-    #[cfg(feature = "maxmind")]
     #[async_trait(?Send)]
     impl Provider for MaxMindProvider {
         fn name(&self) -> &str {
@@ -122,7 +121,7 @@ mod maxmind {
                     .mmdb
                     .lookup::<City>(addr)
                     .map_err(|err| Error::Provider(err.into()))?;
-                let builder: LocationBuilder = city.into();
+                let builder: LocationBuilder = (city, "en").into();
                 builder
                     .provider("maxmind".to_string())
                     .finish()
@@ -134,7 +133,7 @@ mod maxmind {
 }
 
 #[cfg(test)]
-mod tests {
+pub(crate) mod tests {
     use actix_web::test::TestRequest;
 
     use super::FallbackProvider;
@@ -188,15 +187,15 @@ mod tests {
     }
 
     #[cfg(feature = "maxmind")]
-    mod maxmind {
+    pub(crate) mod maxmind {
         use std::path::PathBuf;
 
         use crate::{providers::MaxMindProvider, Error, Location, Provider};
         use actix_web::test::TestRequest;
 
-        const MMDB_LOC: &str = "./GeoLite2-City-Test.mmdb";
-        const TEST_ADDR_1: &str = "216.160.83.56";
-        const TEST_ADDR_2: &str = "127.0.0.1";
+        pub(crate) const MMDB_LOC: &str = "./GeoLite2-City-Test.mmdb";
+        pub(crate) const TEST_ADDR_1: &str = "216.160.83.56";
+        pub(crate) const TEST_ADDR_2: &str = "127.0.0.1";
 
         #[actix_rt::test]
         async fn known_ip() {
