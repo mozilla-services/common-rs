@@ -1,10 +1,14 @@
 use std::sync::Arc;
 
 use crate::{domain::Location, error::Error, providers::Provider};
-use actix_web::{web, FromRequest, HttpRequest};
 use anyhow::anyhow;
 use futures::{future::LocalBoxFuture, FutureExt};
 use lazy_static::lazy_static;
+
+#[cfg(not(feature = "actix-web-v4"))]
+use actix_web_3::{dev, web, FromRequest, HttpRequest};
+#[cfg(feature = "actix-web-v4")]
+use actix_web_4::{dev, web, FromRequest, HttpRequest};
 
 impl FromRequest for Location {
     type Config = LocationConfig;
@@ -13,10 +17,7 @@ impl FromRequest for Location {
 
     type Future = LocalBoxFuture<'static, Result<Self, Self::Error>>;
 
-    fn from_request(
-        req: &actix_web::HttpRequest,
-        _payload: &mut actix_web::dev::Payload,
-    ) -> Self::Future {
+    fn from_request(req: &HttpRequest, _payload: &mut dev::Payload) -> Self::Future {
         let req = req.clone();
         async move {
             let config = LocationConfig::from_req(&req).clone();
@@ -133,7 +134,11 @@ impl LocationConfig {
 #[cfg(test)]
 mod tests {
     use crate::{providers::FallbackProvider, Location, LocationConfig};
-    use actix_web::{dev::Payload, test::TestRequest, FromRequest};
+
+    #[cfg(not(feature = "actix-web-v4"))]
+    use actix_web_3::{dev::Payload, test::TestRequest, FromRequest};
+    #[cfg(feature = "actix-web-v4")]
+    use actix_web_4::{dev::Payload, test::TestRequest, FromRequest};
 
     #[actix_rt::test]
     async fn default_config() {

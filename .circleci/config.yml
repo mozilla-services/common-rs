@@ -31,13 +31,13 @@ jobs:
       - checkout
       - run:
           name: Clippy
-          command: cargo clippy -p << parameters.crate >> --all-features -- -D warnings
+          command: cargo hack --each-feature clippy -p << parameters.crate >> -- -D warnings
       - run:
           name: Cargo build
-          command: cargo build -p << parameters.crate >> --all-features
+          command: cargo hack --each-feature build -p << parameters.crate >>
       - run:
           name: Cargo test
-          command: cargo test -p << parameters.crate >> --verbose --all-features
+          command: cargo hack --each-feature test -p << parameters.crate >> --verbose
       - run:
           name: Cargo Doc
           command: cargo doc -p << parameters.crate >> --all-features
