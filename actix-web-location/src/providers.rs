@@ -1,10 +1,14 @@
 //! Providers are `actix-web-location`'s abstraction to allow multiple ways of determining location.
 
 use crate::{domain::LocationBuilder, Error, Location};
-use actix_web::HttpRequest;
 use async_trait::async_trait;
 #[cfg(feature = "maxmind")]
 pub use maxmind::MaxMindProvider;
+
+#[cfg(not(feature = "actix-web-v4"))]
+use actix_web_3::HttpRequest;
+#[cfg(feature = "actix-web-v4")]
+use actix_web_4::HttpRequest;
 
 /// An object that can be queried to convert [`HttpRequest`] into locations.
 ///
@@ -68,12 +72,16 @@ mod maxmind {
     use crate::domain::LocationBuilder;
 
     use super::{Error, Location, Provider};
-    use actix_web::{http::HeaderName, HttpRequest};
     use anyhow::anyhow;
     use async_trait::async_trait;
     use lazy_static::lazy_static;
     use maxminddb::geoip2::City;
     use std::{net::AddrParseError, path::Path, sync::Arc};
+
+    #[cfg(not(feature = "actix-web-v4"))]
+    use actix_web_3::{http::HeaderName, HttpRequest};
+    #[cfg(feature = "actix-web-v4")]
+    use actix_web_4::{http::HeaderName, HttpRequest};
 
     lazy_static! {
         static ref X_FORWARDED_FOR: HeaderName = HeaderName::from_static("x-forwarded-for");
@@ -134,7 +142,10 @@ mod maxmind {
 
 #[cfg(test)]
 pub(crate) mod tests {
-    use actix_web::test::TestRequest;
+    #[cfg(not(feature = "actix-web-v4"))]
+    use actix_web_3::test::TestRequest;
+    #[cfg(feature = "actix-web-v4")]
+    use actix_web_4::test::TestRequest;
 
     use super::FallbackProvider;
     use crate::{Location, Provider};
@@ -191,7 +202,11 @@ pub(crate) mod tests {
         use std::path::PathBuf;
 
         use crate::{providers::MaxMindProvider, Error, Location, Provider};
-        use actix_web::test::TestRequest;
+
+        #[cfg(not(feature = "actix-web-v4"))]
+        use actix_web_3::test::TestRequest;
+        #[cfg(feature = "actix-web-v4")]
+        use actix_web_4::test::TestRequest;
 
         pub(crate) const MMDB_LOC: &str = "./GeoLite2-City-Test.mmdb";
         pub(crate) const TEST_ADDR_1: &str = "216.160.83.56";
@@ -201,8 +216,16 @@ pub(crate) mod tests {
         async fn known_ip() {
             let provider = MaxMindProvider::from_path(&PathBuf::from(MMDB_LOC))
                 .expect("could not make maxmind client");
-            let request =
-                TestRequest::with_header("X-Forwarded-For", TEST_ADDR_1).to_http_request();
+
+            #[cfg(not(feature = "actix-web-v4"))]
+            let request = TestRequest::default()
+                .header("X-Forwarded-For", TEST_ADDR_1)
+                .to_http_request();
+            #[cfg(feature = "actix-web-v4")]
+            let request = TestRequest::default()
+                .insert_header(("X-Forwarded-For", TEST_ADDR_1))
+                .to_http_request();
+
             let location = provider
                 .get_location(&request)
                 .await
@@ -225,8 +248,16 @@ pub(crate) mod tests {
         async fn unknown_ip() {
             let provider = MaxMindProvider::from_path(&PathBuf::from(MMDB_LOC))
                 .expect("could not make maxmind client");
-            let request =
-                TestRequest::with_header("X-Forwarded-For", TEST_ADDR_2).to_http_request();
+
+            #[cfg(not(feature = "actix-web-v4"))]
+            let request = TestRequest::default()
+                .header("X-Forwarded-For", TEST_ADDR_2)
+                .to_http_request();
+            #[cfg(feature = "actix-web-v4")]
+            let request = TestRequest::default()
+                .insert_header(("X-Forwarded-For", TEST_ADDR_2))
+                .to_http_request();
+
             let location = provider.get_location(&request).await;
             assert!(matches!(location, Err(Error::Provider(_))));
         }

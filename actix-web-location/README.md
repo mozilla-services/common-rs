@@ -19,6 +19,10 @@
 A extensible crate to provide location determination for [actix-web], using
 GeoIP or other techniques.
 
+This crate is optionally compatible with actix-web version 4. By default version
+3 is supported, but by setting the feature `actix-web-4`, the crate will switch
+to version 4. Only one is supported at a time.
+
 [tracing]: https://tracing.rs/tracing/
 [actix-web]: https://actix.rs/
 [mozlog]: https://wiki.mozilla.org/Firefox/Services/Logging
