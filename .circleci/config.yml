@@ -58,4 +58,5 @@ jobs:
       - checkout
       - run:
           name: Cargo audit
-          command: cargo audit
+          # RUSTSEC-2021-0078/79 unlikely to affect clients
+          command: cargo audit --ignore RUSTSEC-2021-0078 --ignore RUSTSEC-2021-0079
