@@ -69,6 +69,12 @@ impl Provider for FallbackProvider {
 
 #[cfg(feature = "maxmind")]
 mod maxmind {
+    use std::{
+        net::{IpAddr, SocketAddr},
+        path::Path,
+        sync::Arc,
+    };
+
     use crate::domain::LocationBuilder;
 
     use super::{Error, Location, Provider};
@@ -76,7 +82,6 @@ mod maxmind {
     use async_trait::async_trait;
     use lazy_static::lazy_static;
     use maxminddb::geoip2::City;
-    use std::{net::AddrParseError, path::Path, sync::Arc};
 
     #[cfg(not(feature = "actix-web-v4"))]
     use actix_web_3::{http::HeaderName, HttpRequest};
@@ -114,12 +119,22 @@ mod maxmind {
             let header = request.headers().get(&*X_FORWARDED_FOR);
 
             let addr = if let Some(header) = header {
-                let value = header.to_str().map_err(|e| Error::Http(e.into()))?;
-                Some(
-                    value
-                        .parse()
-                        .map_err(|e: AddrParseError| Error::Http(e.into()))?,
-                )
+                // Expect a typical X-Forwarded-For where the first address is
+                // the client's, the front ends should ensure this
+                let value = header
+                    .to_str()
+                    .map_err(|e| Error::Http(e.into()))?
+                    .split(',')
+                    .next()
+                    .unwrap_or_default()
+                    .trim();
+                let parsed = value
+                    .parse::<IpAddr>()
+                    // Fallback to parsing as SocketAddr for when a port
+                    // number's included
+                    .or_else(|_| value.parse::<SocketAddr>().map(|socket| socket.ip()))
+                    .map_err(|e| Error::Http(e.into()))?;
+                Some(parsed)
             } else {
                 None
             };
@@ -211,6 +226,20 @@ pub(crate) mod tests {
         pub(crate) const MMDB_LOC: &str = "./GeoLite2-City-Test.mmdb";
         pub(crate) const TEST_ADDR_1: &str = "216.160.83.56";
         pub(crate) const TEST_ADDR_2: &str = "127.0.0.1";
+        pub(crate) const TEST_ADDR_3: &str = "216.160.83.56, 127.0.0.1, 10.0.0.1";
+        pub(crate) const TEST_ADDR_4: &str = "216.160.83.56:31337, 127.0.0.1";
+
+        /// Return the expected location for [TEST_ADDR_1]
+        fn test_location() -> Location {
+            Location::build()
+                .country("US".to_string())
+                .region("WA".to_string())
+                .city("Milton".to_string())
+                .dma(819)
+                .provider("maxmind".to_string())
+                .finish()
+                .expect("bug when creating location")
+        }
 
         #[actix_rt::test]
         async fn known_ip() {
@@ -231,17 +260,7 @@ pub(crate) mod tests {
                 .await
                 .expect("could not get location")
                 .expect("location was none");
-            assert_eq!(
-                location,
-                Location::build()
-                    .country("US".to_string())
-                    .region("WA".to_string())
-                    .city("Milton".to_string())
-                    .dma(819)
-                    .provider("maxmind".to_string())
-                    .finish()
-                    .expect("bug when creating location")
-            );
+            assert_eq!(location, test_location());
         }
 
         #[actix_rt::test]
@@ -260,6 +279,50 @@ pub(crate) mod tests {
 
             let location = provider.get_location(&request).await;
             assert!(matches!(location, Err(Error::Provider(_))));
+        }
+
+        #[actix_rt::test]
+        async fn with_proxy_ips() {
+            let provider = MaxMindProvider::from_path(&PathBuf::from(MMDB_LOC))
+                .expect("could not make maxmind client");
+
+            #[cfg(not(feature = "actix-web-v4"))]
+            let request = TestRequest::default()
+                .header("X-Forwarded-For", TEST_ADDR_3)
+                .to_http_request();
+            #[cfg(feature = "actix-web-v4")]
+            let request = TestRequest::default()
+                .insert_header(("X-Forwarded-For", TEST_ADDR_3))
+                .to_http_request();
+
+            let location = provider
+                .get_location(&request)
+                .await
+                .expect("could not get location")
+                .expect("location was none");
+            assert_eq!(location, test_location());
+        }
+
+        #[actix_rt::test]
+        async fn with_port() {
+            let provider = MaxMindProvider::from_path(&PathBuf::from(MMDB_LOC))
+                .expect("could not make maxmind client");
+
+            #[cfg(not(feature = "actix-web-v4"))]
+            let request = TestRequest::default()
+                .header("X-Forwarded-For", TEST_ADDR_4)
+                .to_http_request();
+            #[cfg(feature = "actix-web-v4")]
+            let request = TestRequest::default()
+                .insert_header(("X-Forwarded-For", TEST_ADDR_4))
+                .to_http_request();
+
+            let location = provider
+                .get_location(&request)
+                .await
+                .expect("could not get location")
+                .expect("location was none");
+            assert_eq!(location, test_location());
         }
 
         #[test]
