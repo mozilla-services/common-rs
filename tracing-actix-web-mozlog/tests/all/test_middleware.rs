@@ -91,7 +91,8 @@ async fn test_request_summary_has_recommended_fields() {
     })
     .await;
 
-    let event = dbg!(log_watcher.events())
+    let event = log_watcher
+        .events()
         .iter()
         .find(|event| event.message_type == "request.summary")
         .expect("Could not find request.summary event");
@@ -139,5 +140,32 @@ async fn test_it_logs_controlled_errors() {
                 && event.fields.get("code") == Some(&json!(500))
         }),
         "errors are still logged with INFO level request.summary"
+    );
+}
+
+#[actix_rt::test]
+async fn test_request_summary_does_not_include_query_strings() {
+    let mut log_watcher: LogWatcher = log_test_async(|| async {
+        let middleware = MozLog::default();
+        let app =
+            test::init_service(App::new().wrap(middleware).service(handler_status_echo)).await;
+
+        let req = test::TestRequest::with_uri("/200?a=1").to_request();
+        let res = app.call(req).await.expect("request handler error");
+        assert_eq!(res.status(), StatusCode::OK);
+    })
+    .await;
+
+    let event = log_watcher
+        .events()
+        .iter()
+        .find(|event| event.message_type == "request.summary")
+        .expect("Could not find request.summary event");
+
+    // let x = event.fields.get("path").map(|v| v.to_string())
+    assert_eq!(
+        *event.fields.get("path").unwrap(),
+        json!("/200"),
+        "should not include query string in logged path"
     );
 }

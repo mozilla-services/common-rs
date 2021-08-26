@@ -158,7 +158,7 @@ impl RootSpanBuilder for MozLogRootSpanBuilder {
         let span = tracing::info_span!(
             "request",
             method = %http_method,
-            path = %request.uri().path_and_query().map(|p| p.as_str()).unwrap_or(""),
+            path = %request.uri().path(),
             code = tracing::field::Empty,
             rid = %request_id,
             errno = tracing::field::Empty,
