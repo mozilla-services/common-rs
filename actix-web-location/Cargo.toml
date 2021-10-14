@@ -19,10 +19,11 @@ async-trait = "0.1"
 lazy_static = "1"
 maxminddb = { version = "0.20", optional = true}
 cadence = { version = "0.26", optional = true}
+actix-http-4 = { package = "actix-http", version = "=3.0.0-beta.9", optional = true }
 
 [features]
 maxmind = ["maxminddb"]
-actix-web-v4 = ["actix-web-4"]
+actix-web-v4 = ["actix-web-4", "actix-http-4"]
 
 [dev_dependencies]
 actix-rt = "2.2"
