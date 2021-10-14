@@ -31,7 +31,7 @@ jobs:
       - checkout
       - run:
           name: Clippy
-          command: cargo hack --each-feature clippy -p << parameters.crate >> -- -D warnings
+          command: cargo hack --each-feature clippy -p << parameters.crate >>
       - run:
           name: Cargo build
           command: cargo hack --each-feature build -p << parameters.crate >>
