@@ -2,11 +2,13 @@
 
 use crate::{domain::LocationBuilder, Error, Location};
 use async_trait::async_trait;
+
 #[cfg(feature = "maxmind")]
 pub use maxmind::MaxMindProvider;
 
-#[cfg(not(feature = "actix-web-v4"))]
+#[cfg(feature = "actix-web-v3")]
 use actix_web_3::HttpRequest;
+
 #[cfg(feature = "actix-web-v4")]
 use actix_web_4::HttpRequest;
 
@@ -83,8 +85,9 @@ mod maxmind {
     use lazy_static::lazy_static;
     use maxminddb::geoip2::City;
 
-    #[cfg(not(feature = "actix-web-v4"))]
+    #[cfg(feature = "actix-web-v3")]
     use actix_web_3::{http::HeaderName, HttpRequest};
+
     #[cfg(feature = "actix-web-v4")]
     use actix_web_4::{http::HeaderName, HttpRequest};
 

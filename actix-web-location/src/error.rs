@@ -1,6 +1,6 @@
 use thiserror::Error;
 
-#[cfg(not(feature = "actix-web-v4"))]
+#[cfg(feature = "actix-web-v3")]
 use actix_web_3::ResponseError;
 #[cfg(feature = "actix-web-v4")]
 use actix_web_4::ResponseError;

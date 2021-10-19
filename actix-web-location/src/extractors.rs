@@ -5,8 +5,9 @@ use anyhow::anyhow;
 use futures::{future::LocalBoxFuture, FutureExt};
 use lazy_static::lazy_static;
 
-#[cfg(not(feature = "actix-web-v4"))]
+#[cfg(feature = "actix-web-v3")]
 use actix_web_3::{dev, web, FromRequest, HttpRequest};
+
 #[cfg(feature = "actix-web-v4")]
 use actix_web_4::{dev, web, FromRequest, HttpRequest};
 
