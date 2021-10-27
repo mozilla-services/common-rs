@@ -6,7 +6,7 @@ use tracing_actix_web_mozlog::MozLogMessage;
 
 #[test]
 fn test_type_can_be_required() {
-    let mut log_watcher: LogWatcher<MozLogMessage> = log_test(Some(Level::INFO), || {
+    let mut log_watcher: LogWatcher<MozLogMessage> = log_test(Some(Level::INFO), None, || {
         event!(Level::INFO, "no type");
     });
 
@@ -39,5 +39,52 @@ fn test_type_can_be_required() {
                 ..events[1].clone()
             }
         ]
+    );
+}
+
+#[test]
+fn test_unknown_type_can_be_filled_in() {
+    let mut log_watcher: LogWatcher<MozLogMessage> = log_test(
+        None,
+        Some(Box::new(|_ev| Some("fallback-type".to_string()))),
+        || {
+            event!(Level::INFO, "no type");
+        },
+    );
+
+    let events = log_watcher.events();
+    assert!(!events.is_empty());
+    assert_eq!(
+        events,
+        &vec![MozLogMessage {
+            message_type: "fallback-type".to_string(),
+            fields: hashmap!(
+                "message".to_string() => "no type".into(),
+                "spans".to_string() => "".into(),
+            ),
+            ..events[0].clone()
+        }]
+    );
+}
+
+#[test]
+fn test_fallback_types_dont_trigger_an_error() {
+    let mut log_watcher: LogWatcher<MozLogMessage> = log_test(
+        Some(Level::INFO),
+        Some(Box::new(|_ev| Some("fallback-type".to_string()))),
+        || {
+            event!(Level::INFO, "no type");
+        },
+    );
+
+    let events = log_watcher.events();
+    assert_eq!(events.len(), 1);
+    assert_eq!(
+        events[0],
+        MozLogMessage {
+            message_type: "fallback-type".to_string(),
+            severity: 5, // INFO
+            ..events[0].clone()
+        }
     );
 }

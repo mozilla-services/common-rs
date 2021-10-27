@@ -75,6 +75,16 @@
 //! Notably, use of the standard `log` facade's macros will have an unknown type,
 //! as well as most other logging that originates from libraries.
 //!
+//! You can modify the fallback message type by providing a closure that can
+//! determine a type for each event that doesn't already have one:
+//!
+//! ```rust
+//! use tracing_actix_web_mozlog::MozLogFormatLayer;
+//!
+//! MozLogFormatLayer::new("service-name", std::io::stdout)
+//!     .with_unknown_type_handler(Some(Box::new(|_ev| Some("custom logic".to_string()))));
+//! ```
+//!
 //! ### Enforcing messages
 //! You can optionally make log messages that lack a `type` field also emit
 //! errors, depending on their level. For example, to make all messages of

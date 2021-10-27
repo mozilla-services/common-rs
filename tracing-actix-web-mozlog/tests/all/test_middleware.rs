@@ -31,7 +31,7 @@ async fn handler_error() -> Result<HttpResponse, TestError> {
 
 #[actix_rt::test]
 async fn test_it_logs_requests() {
-    let mut log_watcher: LogWatcher = log_test_async(None, || async {
+    let mut log_watcher: LogWatcher = log_test_async(None, None, || async {
         let middleware = MozLog::default();
         let app =
             test::init_service(App::new().wrap(middleware).service(handler_status_echo)).await;
@@ -78,7 +78,7 @@ async fn test_it_logs_requests() {
 
 #[actix_rt::test]
 async fn test_request_summary_has_recommended_fields() {
-    let mut log_watcher: LogWatcher = log_test_async(None, || async {
+    let mut log_watcher: LogWatcher = log_test_async(None, None, || async {
         let middleware = MozLog::default();
         let app =
             test::init_service(App::new().wrap(middleware).service(handler_status_echo)).await;
@@ -124,7 +124,7 @@ async fn test_request_summary_has_recommended_fields() {
 
 #[actix_rt::test]
 async fn test_it_logs_controlled_errors() {
-    let mut log_watcher: LogWatcher = log_test_async(None, || async {
+    let mut log_watcher: LogWatcher = log_test_async(None, None, || async {
         let middleware = MozLog::default();
         let app = test::init_service(App::new().wrap(middleware).service(handler_error)).await;
         let req = test::TestRequest::with_uri("/").to_request();
@@ -145,7 +145,7 @@ async fn test_it_logs_controlled_errors() {
 
 #[actix_rt::test]
 async fn test_request_summary_does_not_include_query_strings() {
-    let mut log_watcher: LogWatcher = log_test_async(None, || async {
+    let mut log_watcher: LogWatcher = log_test_async(None, None, || async {
         let middleware = MozLog::default();
         let app =
             test::init_service(App::new().wrap(middleware).service(handler_status_echo)).await;

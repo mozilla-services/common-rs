@@ -29,6 +29,7 @@ pub struct MozLogFormatLayer<W: MakeWriter + 'static> {
     hostname: String,
     make_writer: W,
     type_required_for_level: Option<Level>,
+    unknown_type_handler: Option<Box<dyn Send + Sync + Fn(&Event<'_>) -> Option<String>>>,
 }
 
 /// A logging message in MozLog format, adapted to Tracing.
@@ -70,6 +71,7 @@ impl<W: MakeWriter + 'static> MozLogFormatLayer<W> {
             pid: std::process::id(),
             hostname: gethostname().to_string_lossy().into_owned(),
             type_required_for_level: None,
+            unknown_type_handler: None,
         }
     }
 
@@ -80,6 +82,18 @@ impl<W: MakeWriter + 'static> MozLogFormatLayer<W> {
         self.type_required_for_level = type_required_for_level;
         self
     }
+
+    /// If set to Some, any event that has an unknown type field will be passed
+    /// to this closure. If the closure returns a Some(String), that value will
+    /// be used for the type.
+    pub fn with_unknown_type_handler(
+        mut self,
+        unknown_type_handler: Option<Box<dyn Send + Sync + Fn(&Event<'_>) -> Option<String>>>,
+    ) -> Self {
+        self.unknown_type_handler = unknown_type_handler;
+        self
+    }
+
     fn emit(&self, mut buffer: Vec<u8>) -> Result<(), std::io::Error> {
         buffer.write_all(b"\n")?;
         self.make_writer.make_writer().write_all(&buffer)
@@ -126,46 +140,46 @@ where
     W: MakeWriter + 'static,
 {
     fn on_event(&self, event: &Event<'_>, ctx: Context<'_, S>) {
-            let mut event_visitor = JsonStorage::default();
-            event.record(&mut event_visitor);
+        let mut event_visitor = JsonStorage::default();
+        event.record(&mut event_visitor);
 
-            let mut values: HashMap<String, Value> = event_visitor
-                .values()
-                .iter()
+        let mut values: HashMap<String, Value> = event_visitor
+            .values()
+            .iter()
             .map(|(k, v)| ((*k).to_string(), v.clone()))
-                .collect();
+            .collect();
 
-            let spans = {
-                let mut span_names = vec![];
-                let mut current = ctx.lookup_current();
-                while let Some(span) = &current {
-                    {
-                        let ext = span.extensions();
-                        let span_visitor = ext
-                            .get::<JsonStorage>()
-                            .expect("MozLogFormatLayer requires JsonStorage layer");
-                        for (k, v) in span_visitor.values() {
+        let spans = {
+            let mut span_names = vec![];
+            let mut current = ctx.lookup_current();
+            while let Some(span) = &current {
+                {
+                    let ext = span.extensions();
+                    let span_visitor = ext
+                        .get::<JsonStorage>()
+                        .expect("MozLogFormatLayer requires JsonStorage layer");
+                    for (k, v) in span_visitor.values() {
                         values.entry((*k).to_string()).or_insert_with(|| v.clone());
-                        }
                     }
-
-                    span_names.push(span.name());
-                    current = span.parent();
                 }
-                span_names.reverse();
+
+                span_names.push(span.name());
+                current = span.parent();
+            }
+            span_names.reverse();
             span_names.join(",").into()
-            };
+        };
         values.insert("spans".to_string(), spans);
 
-            // See https://en.wikipedia.org/wiki/Syslog#Severity_levels
+        // See https://en.wikipedia.org/wiki/Syslog#Severity_levels
         let event_level = *event.metadata().level();
         let severity = match event_level {
-                Level::ERROR => 3, // Syslog Error
-                Level::WARN => 4,  // Syslog Warning
-                Level::INFO => 5,  // Syslog Normal
-                Level::DEBUG => 6, // Syslog Informational
-                Level::TRACE => 7, // Syslog Debug
-            };
+            Level::ERROR => 3, // Syslog Error
+            Level::WARN => 4,  // Syslog Warning
+            Level::INFO => 5,  // Syslog Normal
+            Level::DEBUG => 6, // Syslog Informational
+            Level::TRACE => 7, // Syslog Debug
+        };
 
         let mut log_lines: Vec<Result<Vec<u8>, _>> = Vec::with_capacity(2);
 
@@ -174,7 +188,12 @@ where
             let raw_type_field = values.remove("r#type");
             let combined = type_field
                 .or(raw_type_field)
-                .and_then(|v| v.as_str().map(ToString::to_string));
+                .and_then(|v| v.as_str().map(ToString::to_string))
+                .or_else(|| {
+                    self.unknown_type_handler
+                        .as_ref()
+                        .and_then(|handler| handler(event))
+                });
 
             combined.unwrap_or_else(|| {
                 log_lines.extend(self.handle_missing_type(event, &values).into_iter());
@@ -182,19 +201,19 @@ where
             })
         };
 
-            let v = MozLogMessage {
-                timestamp: chrono::Utc::now().timestamp_nanos(),
+        let v = MozLogMessage {
+            timestamp: chrono::Utc::now().timestamp_nanos(),
             message_type,
-                logger: self.name.clone(),
-                hostname: self.hostname.clone(),
-                env_version: MOZLOG_VERSION.to_string(),
-                pid: self.pid,
-                severity,
-                fields: values,
-            };
+            logger: self.name.clone(),
+            hostname: self.hostname.clone(),
+            env_version: MOZLOG_VERSION.to_string(),
+            pid: self.pid,
+            severity,
+            fields: values,
+        };
 
-            // If there is an error, just squash it quietly. After all, if we
-            // failed to log, we can't exactly log an error.
+        // If there is an error, just squash it quietly. After all, if we
+        // failed to log, we can't exactly log an error.
         log_lines.push(serde_json::to_vec(&v).map_err(|_| ()));
 
         // Discard any errors, since they probably can't be logged anyways.

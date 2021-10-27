@@ -14,7 +14,7 @@ lazy_static! {
 
 #[test]
 fn logger_matches_schema() {
-    let mut log_watcher: LogWatcher<Value> = log_test(None, || {
+    let mut log_watcher: LogWatcher<Value> = log_test(None, None, || {
         event!(Level::INFO, "event at nesting 0");
         let _guard1 = span!(Level::INFO, "test_span_1").entered();
         event!(Level::INFO, "event at nesting 1");
