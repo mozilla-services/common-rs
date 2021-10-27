@@ -13,7 +13,7 @@
 //! To use the subscriber, register it and a [`JsonStorageLayer`] with a
 //! [`tracing_subscriber::Registry`]:
 //!
-//! ```
+//! ```rust
 //! use tracing_actix_web_mozlog::{JsonStorageLayer, MozLogFormatLayer};
 //! use tracing_subscriber::layer::SubscriberExt;
 //!
@@ -35,7 +35,7 @@
 //! To make sure that the correct Tracing context is captured, it is important to
 //! create the MozLog middleware outside of the `HttpServer::new` closure:
 //!
-//! ```
+//! ```rust
 //! use tracing_actix_web_mozlog::MozLog;
 //! use actix_web::{HttpServer, App};
 //!
@@ -66,12 +66,26 @@
 //! );
 //! ```
 //!
+//! ### Fallback message types
+//!
 //! Messages that don't include a `type` field will be assigned a type of
 //! `<unknown>`. If a message contains both a `type` field and a `r#type` field,
 //! the `type` field will take precedence.
 //!
 //! Notably, use of the standard `log` facade's macros will have an unknown type,
 //! as well as most other logging that originates from libraries.
+//!
+//! ### Enforcing messages
+//! You can optionally make log messages that lack a `type` field also emit
+//! errors, depending on their level. For example, to make all messages of
+//! ERROR, WARN, and INFO require a `type` field:
+//!
+//! ```rust
+//! use tracing_actix_web_mozlog::MozLogFormatLayer;
+//!
+//! MozLogFormatLayer::new("service-name", std::io::stdout)
+//!     .with_type_required_for_level(Some(tracing::Level::INFO));
+//! ```
 //!
 //! ## MozLog extensions
 //!

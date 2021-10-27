@@ -7,7 +7,7 @@ use tracing_actix_web_mozlog::MozLogMessage;
 
 #[test]
 fn test_format() {
-    let mut log_watcher: LogWatcher<MozLogMessage> = log_test(|| {
+    let mut log_watcher: LogWatcher<MozLogMessage> = log_test(None, || {
         event!(
             Level::INFO,
             r#type = "test",
@@ -53,7 +53,7 @@ fn test_format() {
 
 #[test]
 fn test_log_level_to_severity() {
-    let mut log_watcher: LogWatcher<MozLogMessage> = log_test(|| {
+    let mut log_watcher: LogWatcher<MozLogMessage> = log_test(None, || {
         event!(Level::ERROR, "error");
         event!(Level::WARN, "warn");
         event!(Level::INFO, "info");
@@ -85,7 +85,7 @@ fn test_log_level_to_severity() {
 
 #[test]
 fn test_span_is_listed() {
-    let mut log_watcher: LogWatcher = log_test(|| {
+    let mut log_watcher: LogWatcher = log_test(None, || {
         let span = span!(Level::INFO, "test_span");
         let _guard = span.enter();
         event!(Level::INFO, "test_event");
@@ -108,7 +108,7 @@ fn test_span_is_listed() {
 
 #[test]
 fn test_nested_spans() {
-    let mut log_watcher: LogWatcher = log_test(|| {
+    let mut log_watcher: LogWatcher = log_test(None, || {
         event!(Level::INFO, "event at nesting 0");
         let _guard1 = span!(Level::INFO, "test_span_1").entered();
         event!(Level::INFO, "event at nesting 1");
@@ -149,7 +149,7 @@ fn test_nested_spans() {
 
 #[test]
 fn events_inherit_fields() {
-    let mut log_watcher: LogWatcher = log_test(|| {
+    let mut log_watcher: LogWatcher = log_test(None, || {
         let _guard = span!(Level::INFO, "test_span", color = "red").entered();
         event!(Level::INFO, "test_event");
     });
@@ -171,7 +171,7 @@ fn events_inherit_fields() {
 
 #[test]
 fn innermost_value_wins() {
-    let mut log_watcher: LogWatcher = log_test(|| {
+    let mut log_watcher: LogWatcher = log_test(None, || {
         let _outer = span!(Level::INFO, "outer", a = 1, b = 1, c = 1).entered();
         let _inner = span!(Level::INFO, "inner", b = 2, c = 2).entered();
         event!(Level::INFO, c = 3, "test_event");

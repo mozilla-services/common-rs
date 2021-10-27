@@ -6,7 +6,7 @@ use std::{
     io::Write,
     sync::{Arc, Mutex},
 };
-use tracing::Subscriber;
+use tracing::{Level, Subscriber};
 use tracing_actix_web_mozlog::{JsonStorageLayer, MozLogFormatLayer, MozLogMessage};
 use tracing_futures::WithSubscriber;
 use tracing_subscriber::{fmt::MakeWriter, layer::SubscriberExt, Registry};
@@ -14,37 +14,39 @@ use tracing_subscriber::{fmt::MakeWriter, layer::SubscriberExt, Registry};
 /// Run a closure in an environment configured to use [`MozLogLayer`], and return
 /// a log watcher that cna make assertions about the tracing logs that occurred
 /// while running the closure.
-pub fn log_test<E, F>(test_inner: F) -> LogWatcher<E>
+pub fn log_test<E, F>(type_required_for: Option<Level>, test_inner: F) -> LogWatcher<E>
 where
-    E: 'static,
-    E: DeserializeOwned,
-    E: Default,
+    E: 'static + DeserializeOwned + Default,
     F: FnOnce(),
 {
-    let (log_watcher, subscriber) = make_test_subscriber();
+    let (log_watcher, subscriber) = make_test_subscriber(type_required_for);
     tracing::subscriber::with_default(subscriber, test_inner);
     log_watcher
 }
 
 /// A version of [`log_test`] that can handle async inner tests.
-pub async fn log_test_async<E, F, Fut>(test_inner: F) -> LogWatcher<E>
+pub async fn log_test_async<E, F, Fut>(
+    type_required_for: Option<Level>,
+    test_inner: F,
+) -> LogWatcher<E>
 where
-    E: 'static,
-    E: DeserializeOwned,
-    E: Default,
+    E: 'static + DeserializeOwned + Default,
     F: FnOnce() -> Fut,
     Fut: Future,
 {
-    let (log_watcher, subscriber) = make_test_subscriber();
+    let (log_watcher, subscriber) = make_test_subscriber(type_required_for);
     test_inner().with_subscriber(subscriber).await;
     log_watcher
 }
 
-fn make_test_subscriber<E: Default>() -> (LogWatcher<E>, impl Subscriber) {
+fn make_test_subscriber<E: Default>(
+    type_required_for: Option<Level>,
+) -> (LogWatcher<E>, impl Subscriber) {
     let log_watcher: LogWatcher<E> = LogWatcher::default();
     let log_watcher_writer = log_watcher.make_writer();
     let formatting_layer =
-        MozLogFormatLayer::new("test-logger", move || log_watcher_writer.clone());
+        MozLogFormatLayer::new("test-logger", move || log_watcher_writer.clone())
+            .with_type_required_for_level(type_required_for);
 
     let subscriber = Registry::default()
         .with(JsonStorageLayer)

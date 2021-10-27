@@ -1,7 +1,8 @@
 use gethostname::gethostname;
+use maplit::hashmap;
 use serde::{Deserialize, Serialize};
 use serde_json::Value;
-use std::{collections::HashMap, io::Write};
+use std::{collections::HashMap, io::Write, string::ToString};
 use tracing::{Event, Level, Subscriber};
 use tracing_bunyan_formatter::JsonStorage;
 use tracing_subscriber::{fmt::MakeWriter, layer::Context};
@@ -27,6 +28,7 @@ pub struct MozLogFormatLayer<W: MakeWriter + 'static> {
     pid: u32,
     hostname: String,
     make_writer: W,
+    type_required_for_level: Option<Level>,
 }
 
 /// A logging message in MozLog format, adapted to Tracing.
@@ -67,12 +69,54 @@ impl<W: MakeWriter + 'static> MozLogFormatLayer<W> {
             make_writer,
             pid: std::process::id(),
             hostname: gethostname().to_string_lossy().into_owned(),
+            type_required_for_level: None,
         }
     }
 
+    /// If set to Some, any log line that is at this level or a less verbose one
+    /// must have a type set. Any message that violates this rule will cause an
+    /// extra error message to be emitted.
+    pub fn with_type_required_for_level(mut self, type_required_for_level: Option<Level>) -> Self {
+        self.type_required_for_level = type_required_for_level;
+        self
+    }
     fn emit(&self, mut buffer: Vec<u8>) -> Result<(), std::io::Error> {
         buffer.write_all(b"\n")?;
         self.make_writer.make_writer().write_all(&buffer)
+    }
+
+    #[must_use]
+    fn handle_missing_type(
+        &self,
+        event: &Event<'_>,
+        values: &HashMap<String, serde_json::Value>,
+    ) -> Option<Result<Vec<u8>, ()>> {
+        let event_level = *event.metadata().level();
+        if let Some(type_required_for_level) = self.type_required_for_level {
+            if event_level <= type_required_for_level {
+                let error_message = MozLogMessage {
+                    timestamp: chrono::Utc::now().timestamp_nanos(),
+                    message_type: "mozlog.missing-type".to_string(),
+                    logger: self.name.clone(),
+                    hostname: self.hostname.clone(),
+                    env_version: MOZLOG_VERSION.to_string(),
+                    pid: self.pid,
+                    severity: 3, // error
+                    fields: hashmap! {
+                        "message".to_string() => format!("events with level {} require a type to be set", event_level).into(),
+                        "original_level".to_string() => event_level.to_string().into(),
+                        "original_message".to_string() => values.get("message")
+                            .map_or_else(|| serde_json::Value::String("<none>".to_string()), Clone::clone),
+                        "spans".to_string() => values.get("spans").expect("was inserted earlier").clone(),
+                    },
+                };
+
+                // If there is an error, just squash it quietly. After all, if we
+                // failed to log, we can't exactly log an error.
+                return Some(serde_json::to_vec(&error_message).map_err(|_| ()));
+            }
+        }
+        None
     }
 }
 
@@ -82,16 +126,13 @@ where
     W: MakeWriter + 'static,
 {
     fn on_event(&self, event: &Event<'_>, ctx: Context<'_, S>) {
-        // Use a closure that returns a `Result` to enable usage of the `?`
-        // operator and make clearer code. This is called immediately below.
-        let make_log_line = || {
             let mut event_visitor = JsonStorage::default();
             event.record(&mut event_visitor);
 
             let mut values: HashMap<String, Value> = event_visitor
                 .values()
                 .iter()
-                .map(|(k, v)| (k.to_string(), v.clone()))
+            .map(|(k, v)| ((*k).to_string(), v.clone()))
                 .collect();
 
             let spans = {
@@ -104,7 +145,7 @@ where
                             .get::<JsonStorage>()
                             .expect("MozLogFormatLayer requires JsonStorage layer");
                         for (k, v) in span_visitor.values() {
-                            values.entry(k.to_string()).or_insert_with(|| v.clone());
+                        values.entry((*k).to_string()).or_insert_with(|| v.clone());
                         }
                     }
 
@@ -112,11 +153,13 @@ where
                     current = span.parent();
                 }
                 span_names.reverse();
-                span_names.join(",")
+            span_names.join(",").into()
             };
+        values.insert("spans".to_string(), spans);
 
             // See https://en.wikipedia.org/wiki/Syslog#Severity_levels
-            let severity = match *event.metadata().level() {
+        let event_level = *event.metadata().level();
+        let severity = match event_level {
                 Level::ERROR => 3, // Syslog Error
                 Level::WARN => 4,  // Syslog Warning
                 Level::INFO => 5,  // Syslog Normal
@@ -124,16 +167,24 @@ where
                 Level::TRACE => 7, // Syslog Debug
             };
 
+        let mut log_lines: Vec<Result<Vec<u8>, _>> = Vec::with_capacity(2);
+
+        let message_type = {
             let type_field = values.remove("type");
             let raw_type_field = values.remove("r#type");
-            values.insert("spans".to_string(), spans.into());
+            let combined = type_field
+                .or(raw_type_field)
+                .and_then(|v| v.as_str().map(ToString::to_string));
+
+            combined.unwrap_or_else(|| {
+                log_lines.extend(self.handle_missing_type(event, &values).into_iter());
+                "<unknown>".to_string()
+            })
+        };
 
             let v = MozLogMessage {
                 timestamp: chrono::Utc::now().timestamp_nanos(),
-                message_type: type_field
-                    .or(raw_type_field)
-                    .and_then(|v| v.as_str().map(|s| s.to_string()))
-                    .unwrap_or_else(|| "<unknown>".to_string()),
+            message_type,
                 logger: self.name.clone(),
                 hostname: self.hostname.clone(),
                 env_version: MOZLOG_VERSION.to_string(),
@@ -144,13 +195,11 @@ where
 
             // If there is an error, just squash it quietly. After all, if we
             // failed to log, we can't exactly log an error.
-            serde_json::to_vec(&v).map_err(|_| ())
-        };
+        log_lines.push(serde_json::to_vec(&v).map_err(|_| ()));
 
-        let log_line_result: Result<Vec<u8>, ()> = make_log_line();
         // Discard any errors, since they probably can't be logged anyways.
-        if let Ok(log_line) = log_line_result {
-            let _ = self.emit(log_line);
+        for log_line in log_lines.into_iter().flatten() {
+            self.emit(log_line).ok();
         }
     }
 }
