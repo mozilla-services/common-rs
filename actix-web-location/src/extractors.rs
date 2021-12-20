@@ -12,6 +12,9 @@ use actix_web_3::{dev, web, FromRequest, HttpRequest};
 use actix_web_4::{dev, web, FromRequest, HttpRequest};
 
 impl FromRequest for Location {
+    #[cfg(feature = "actix-web-v3")]
+    type Config = LocationConfig;
+
     type Error = Error;
 
     type Future = LocalBoxFuture<'static, Result<Self, Self::Error>>;
