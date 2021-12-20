@@ -9,6 +9,7 @@ use std::{
 
 use actix_service::{Service, Transform};
 use actix_web::{
+    body::MessageBody,
     dev::{ServiceRequest, ServiceResponse},
     HttpMessage,
 };
@@ -59,10 +60,11 @@ impl<S, B> Transform<S, ServiceRequest> for MozLog
 where
     S: Service<ServiceRequest, Response = ServiceResponse<B>, Error = actix_web::Error>,
     S::Future: 'static,
-    B: 'static,
+    B: 'static + MessageBody,
     S: 'static,
 {
-    type Response = ServiceResponse<B>;
+    type Response =
+        <TracingLogger<MozLogRootSpanBuilder> as Transform<S, ServiceRequest>>::Response;
     type Error = actix_web::Error;
     type Transform = MozLogMiddleware<
         <TracingLogger<MozLogRootSpanBuilder> as Transform<S, ServiceRequest>>::Transform,
@@ -87,7 +89,7 @@ pub struct MozLogTransform<S, B>
 where
     S: Service<ServiceRequest, Response = ServiceResponse<B>, Error = actix_web::Error>,
     S::Future: 'static,
-    B: 'static,
+    B: 'static + MessageBody,
 {
     dispatch: Dispatch,
     inner: Pin<Box<dyn Future<Output = Result<TracingLoggerMiddleware<S>, ()>>>>,
@@ -97,7 +99,7 @@ impl<S, B> Future for MozLogTransform<S, B>
 where
     S: Service<ServiceRequest, Response = ServiceResponse<B>, Error = actix_web::Error>,
     S::Future: 'static,
-    B: 'static,
+    B: 'static + MessageBody,
 {
     type Output = Result<MozLogMiddleware<TracingLoggerMiddleware<S>>, ()>;
 

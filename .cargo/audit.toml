@@ -12,6 +12,10 @@ ignore = [
     "RUSTSEC-2021-0078", # Only affects hyper server
     "RUSTSEC-2021-0079", # Unlikely to affect reqwest client requests
 
+    # Older versions of Tokio are vulnerable to a race condition when using oneshot channels.
+    # This repository doesn't use oneshot channels, so we are not vulnerable.
+    "RUSTSEC-2021-0124", # Tokio 0.1.22 and 0.2.25 - Potential data race.
+
     # While this is not a false positive, there is no recommended fix right
     # now for the chrono problem, hence the exception.
     "RUSTSEC-2020-0159", # Chrono 0.4.19 - Potential segfault in `localtime_r` invokations.
