@@ -31,13 +31,13 @@ jobs:
       - checkout
       - run:
           name: Clippy
-          command: cargo hack --each-feature clippy -p << parameters.crate >>
+          command: cargo hack --feature-powerset clippy -p << parameters.crate >>
       - run:
           name: Cargo build
-          command: cargo hack --each-feature build -p << parameters.crate >>
+          command: cargo hack --feature-powerset build -p << parameters.crate >>
       - run:
           name: Cargo test
-          command: cargo hack --each-feature test -p << parameters.crate >> --verbose
+          command: cargo hack --feature-powerset test -p << parameters.crate >> --verbose
       - run:
           name: Cargo Doc
           command: cargo doc -p << parameters.crate >> --all-features
