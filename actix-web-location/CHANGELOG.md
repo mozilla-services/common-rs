@@ -1,3 +1,9 @@
+<a name="0.5"></a>
+
+## 0.5 (2021-12-21)
+
+- When using actix-web v4, restrict the version of actix-web to 4.0.0-beta.15.
+
 <a name="0.4"></a>
 
 ## 0.4 (2021-10-14)
