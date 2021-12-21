@@ -1,3 +1,11 @@
+<a name="v0.4"></a>
+
+## v0.4 (2021-12-21)
+
+### Breaking Changes
+
+- Update `actix-web` to `=4.0.0-beta.15`.
+
 <a name="v0.3.1"></a>
 
 ## v0.3.1 (2021-10-19)
