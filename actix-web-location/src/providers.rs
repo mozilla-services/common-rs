@@ -89,7 +89,7 @@ mod maxmind {
     use actix_web_3::{http::HeaderName, HttpRequest};
 
     #[cfg(feature = "actix-web-v4")]
-    use actix_web_4::{http::HeaderName, HttpRequest};
+    use actix_web_4::{http::header::HeaderName, HttpRequest};
 
     lazy_static! {
         static ref X_FORWARDED_FOR: HeaderName = HeaderName::from_static("x-forwarded-for");
