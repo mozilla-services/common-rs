@@ -10,8 +10,8 @@ homepage = "https://github.com/mozilla-services/common-rs/tree/master/actix-web-
 
 [dependencies]
 serde = { version = "1", optional = true, features = ["derive"] }
-actix-web-3 = { package = "actix-web", version = "3", optional = true }
-actix-web-4 = { package = "actix-web", version = "=4.0.0-beta.15", optional = true }
+actix-web-3 = { package = "actix-web", version = "3", default-features = false, optional = true }
+actix-web-4 = { package = "actix-web", version = "=4.0.0-beta.15", default-features = false, optional = true }
 futures = "0.3"
 thiserror = "1"
 anyhow = "1"
@@ -19,12 +19,11 @@ async-trait = "0.1"
 lazy_static = "1"
 maxminddb = { version = "0.20", optional = true}
 cadence = { version = "0.26", optional = true}
-actix-http-4 = { package = "actix-http", version = "=3.0.0-beta.16", optional = true }
 
 [features]
 maxmind = ["maxminddb"]
 actix-web-v3 = ["actix-web-3"]
-actix-web-v4 = ["actix-web-4", "actix-http-4"]
+actix-web-v4 = ["actix-web-4"]
 # cadence = [] - implied since cadence is optional above
 
 [dev_dependencies]
