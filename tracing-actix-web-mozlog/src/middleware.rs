@@ -7,10 +7,9 @@ use std::{
     time::Instant,
 };
 
-use actix_service::{Service, Transform};
 use actix_web::{
     body::MessageBody,
-    dev::{ServiceRequest, ServiceResponse},
+    dev::{Service, ServiceRequest, ServiceResponse, Transform},
     HttpMessage,
 };
 use tracing::{Dispatch, Span};

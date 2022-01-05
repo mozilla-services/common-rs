@@ -10,7 +10,7 @@ A common set of utilities for Mozilla server side applications.
 
 ---
 
-- [`mozsvc-common`](./tree/master/mozsvc-common)
+- [`mozsvc-common`](mozsvc-common)
   [![version-badge::mozsvc-common]][crates.io::mozsvc-common]
   [![rustdoc-badge::mozsvc-common]][docs::mozsvc-common]
 
@@ -23,7 +23,7 @@ A common set of utilities for Mozilla server side applications.
 [docs::mozsvc-common]: https://docs.rs/mozsvc-common
 [rustdoc-badge::mozsvc-common]: https://img.shields.io/docsrs/mozsvc-common
 
-- [`tracing-actix-web-mozlog`](./tree/master/tracing-actix-web-mozlog)
+- [`tracing-actix-web-mozlog`](tracing-actix-web-mozlog)
   [![version-badge::tracing-actix-web-mozlog]][crates.io::tracing-actix-web-mozlog]
   [![rustdoc-badge::tracing-actix-web-mozlog]][docs::tracing-actix-web-mozlog]
 
@@ -37,7 +37,7 @@ A common set of utilities for Mozilla server side applications.
 [rustdoc-badge::tracing-actix-web-mozlog]:
   https://img.shields.io/docsrs/tracing-actix-web-mozlog
 
-- [`actix-web-location`](./tree/master/actix-web-location)
+- [`actix-web-location`](actix-web-location)
   [![version-badge::actix-web-location]][crates.io::actix-web-location]
   [![rustdoc-badge::actix-web-location]][docs::actix-web-location]
 
