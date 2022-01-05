@@ -8,6 +8,10 @@ documentation = "https://docs.rs/actix-web-location"
 repository = "https://github.com/mozilla-services/common-rs"
 homepage = "https://github.com/mozilla-services/common-rs/tree/master/actix-web-location"
 
+[package.metadata.docs.rs]
+# features that docs.rs will build with
+features = ["actix-web-v3", "maxminddb"]
+
 [dependencies]
 serde = { version = "1", optional = true, features = ["derive"] }
 actix-web-3 = { package = "actix-web", version = "3", default-features = false, optional = true }
