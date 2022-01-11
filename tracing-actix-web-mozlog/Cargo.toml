@@ -2,7 +2,7 @@
 name = "tracing-actix-web-mozlog"
 description = "Support for tracing in actix-web apps that target Mozilla's MozLog"
 license = "MPL-2.0"
-version = "0.4.0"
+version = "0.4.1"
 edition = "2018"
 documentation = "https://docs.rs/tracing-actix-web-mozlog"
 repository = "https://github.com/mozilla-services/common-rs"

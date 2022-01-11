@@ -1,3 +1,9 @@
+<a name="0.4.1"></a>
+
+## 0.4.1 (2022-01-11)
+
+- reduce transitive actix-web dependencies
+
 <a name="v0.4"></a>
 
 ## v0.4 (2021-12-21)
