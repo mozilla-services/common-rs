@@ -1,3 +1,9 @@
+<a name="0.5.1"></a>
+
+## 0.5.1 (2022-01-11)
+
+- reduce transitive actix-web dependencies
+
 <a name="0.5"></a>
 
 ## 0.5 (2021-12-21)
