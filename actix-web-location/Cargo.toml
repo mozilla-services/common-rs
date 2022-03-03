@@ -10,12 +10,12 @@ homepage = "https://github.com/mozilla-services/common-rs/tree/master/actix-web-
 
 [package.metadata.docs.rs]
 # features that docs.rs will build with
-features = ["actix-web-v3", "maxminddb"]
+features = ["actix-web-v4", "maxminddb"]
 
 [dependencies]
 serde = { version = "1", optional = true, features = ["derive"] }
 actix-web-3 = { package = "actix-web", version = "3", default-features = false, optional = true }
-actix-web-4 = { package = "actix-web", version = "=4.0.0-beta.15", default-features = false, optional = true }
+actix-web-4 = { package = "actix-web", version = "4", default-features = false, optional = true }
 futures = "0.3"
 thiserror = "1"
 anyhow = "1"
