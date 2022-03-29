@@ -80,7 +80,7 @@
 //! spans enclosing the event, with the outermost span coming first. Top-level
 //! events will have an empty string for this value.
 
-#![warn(missing_crate_level_docs)]
+#![warn(rustdoc::missing_crate_level_docs)]
 #![warn(missing_docs)]
 
 mod middleware;

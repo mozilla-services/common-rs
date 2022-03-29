@@ -5,4 +5,4 @@ extern crate reqwest;
 
 pub mod aws;
 
-pub use hostname::get_hostname;
+pub use hostname::get as get_hostname;

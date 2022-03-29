@@ -1,9 +1,9 @@
 [package]
 name = "actix-web-location"
-version = "0.5.1"
+version = "0.6.0"
 description = "A extensible crate to provide location determination for actix-web, using GeoIP or other techniques"
 license = "MPL-2.0"
-edition = "2018"
+edition = "2021"
 documentation = "https://docs.rs/actix-web-location"
 repository = "https://github.com/mozilla-services/common-rs"
 homepage = "https://github.com/mozilla-services/common-rs/tree/master/actix-web-location"
@@ -21,8 +21,8 @@ thiserror = "1"
 anyhow = "1"
 async-trait = "0.1"
 lazy_static = "1"
-maxminddb = { version = "0.20", optional = true}
-cadence = { version = "0.26", optional = true}
+maxminddb = { version = "0.22", optional = true}
+cadence = { version = "0.28", optional = true}
 
 [features]
 maxmind = ["maxminddb"]
