@@ -1,13 +1,5 @@
 [advisories]
 ignore = [
-    # Pre-release versions cause false positives in cargo-audit. See https://github.com/RustSec/rustsec-crate/issues/218
-    "RUSTSEC-2018-0019", # False positive on actix-web. Affected versions are <0.7.15, we have 4.0.0-beta.5.
-    "RUSTSEC-2020-0048", # False positive on actix-http. Affected versions are <2.0.0-alpha.1, we have 3.0.0-beta.5.
-
-    # Hyper issues: only used via reqwest (client only)
-    "RUSTSEC-2021-0078", # Only affects hyper server
-    "RUSTSEC-2021-0079", # Unlikely to affect reqwest client requests
-
     # Older versions of Tokio are vulnerable to a race condition when using oneshot channels.
     # This repository doesn't use oneshot channels, so we are not vulnerable.
     "RUSTSEC-2021-0124", # Tokio 0.1.22 and 0.2.25 - Potential data race.

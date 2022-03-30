@@ -15,7 +15,7 @@ pub fn get_ec2_instance_id() -> Option<&'static str> {
 }
 
 fn _get_ec2_instance_id() -> reqwest::Result<String> {
-    let client = reqwest::Client::builder()
+    let client = reqwest::blocking::Client::builder()
         .timeout(Duration::from_secs(1))
         .build()?;
     client
