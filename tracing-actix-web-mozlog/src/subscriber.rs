@@ -1,7 +1,7 @@
 use gethostname::gethostname;
 use serde::{Deserialize, Serialize};
 use serde_json::Value;
-use std::{collections::HashMap, io::Write};
+use std::{collections::HashMap, io::Write, time::SystemTime};
 use tracing::{Event, Level, Subscriber};
 use tracing_bunyan_formatter::JsonStorage;
 use tracing_subscriber::{fmt::MakeWriter, layer::Context};
@@ -22,7 +22,7 @@ const MOZLOG_VERSION: &str = "2.0";
 ///     .with(JsonStorageLayer)
 ///     .with(MozLogFormatLayer::new("service-name", std::io::stdout));
 /// ```
-pub struct MozLogFormatLayer<W: MakeWriter + 'static> {
+pub struct MozLogFormatLayer<W: for<'a> MakeWriter<'a> + 'static> {
     name: String,
     pid: u32,
     hostname: String,
@@ -59,7 +59,7 @@ pub struct MozLogMessage {
     pub fields: HashMap<String, Value>,
 }
 
-impl<W: MakeWriter + 'static> MozLogFormatLayer<W> {
+impl<W: for<'a> MakeWriter<'a> + 'static> MozLogFormatLayer<W> {
     /// Create a new moz log subscriber.
     pub fn new<S: AsRef<str>>(name: S, make_writer: W) -> Self {
         Self {
@@ -79,7 +79,7 @@ impl<W: MakeWriter + 'static> MozLogFormatLayer<W> {
 impl<S, W> tracing_subscriber::Layer<S> for MozLogFormatLayer<W>
 where
     S: Subscriber + for<'a> tracing_subscriber::registry::LookupSpan<'a>,
-    W: MakeWriter + 'static,
+    W: for<'a> MakeWriter<'a> + 'static,
 {
     fn on_event(&self, event: &Event<'_>, ctx: Context<'_, S>) {
         // Use a closure that returns a `Result` to enable usage of the `?`
@@ -129,7 +129,10 @@ where
             values.insert("spans".to_string(), spans.into());
 
             let v = MozLogMessage {
-                timestamp: chrono::Utc::now().timestamp_nanos(),
+                timestamp: SystemTime::now()
+                    .duration_since(SystemTime::UNIX_EPOCH)
+                    .unwrap_or_default()
+                    .as_nanos() as i64,
                 message_type: type_field
                     .or(raw_type_field)
                     .and_then(|v| v.as_str().map(|s| s.to_string()))

@@ -152,7 +152,7 @@ where
     }
 }
 
-impl<E> MakeWriter for LogWatcher<E> {
+impl<E> MakeWriter<'_> for LogWatcher<E> {
     type Writer = LogWatcherWriter;
 
     fn make_writer(&self) -> Self::Writer {
