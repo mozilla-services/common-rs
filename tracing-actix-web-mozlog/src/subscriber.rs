@@ -129,7 +129,10 @@ where
             values.insert("spans".to_string(), spans.into());
 
             let v = MozLogMessage {
-                timestamp: time::OffsetDateTime::now_utc().unix_timestamp_nanos(),
+                timestamp: SystemTime::now()
+                    .duration_since(SystemTime::UNIX_EPOCH)
+                    .unwrap_or_default()
+                    .as_nanos() as u64,
                 message_type: type_field
                     .or(raw_type_field)
                     .and_then(|v| v.as_str().map(|s| s.to_string()))
