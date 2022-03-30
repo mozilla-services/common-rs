@@ -34,7 +34,7 @@ pub struct MozLogFormatLayer<W: MakeWriter + 'static> {
 #[serde(rename_all = "PascalCase")]
 pub struct MozLogMessage {
     /// Number of nanoseconds since the UNIX epoch (which is UTC)
-    pub timestamp: i64,
+    pub timestamp: i128,
 
     /// Type of message i.e. "request.summary"
     #[serde(rename = "type")]
@@ -129,7 +129,7 @@ where
             values.insert("spans".to_string(), spans.into());
 
             let v = MozLogMessage {
-                timestamp: chrono::Utc::now().timestamp_nanos(),
+                timestamp: time::OffsetDateTime::now_utc().unix_timestamp_nanos(),
                 message_type: type_field
                     .or(raw_type_field)
                     .and_then(|v| v.as_str().map(|s| s.to_string()))
