@@ -6,7 +6,7 @@ use tracing::{event, span, Level};
 use crate::utils::{log_test, LogWatcher};
 
 lazy_static! {
-    static ref MOZLOG_SCHEMA: JSONSchema<'static> =
+    static ref MOZLOG_SCHEMA: JSONSchema =
         JSONSchema::compile(&PARSED_SCHEMA).expect("schema is in invalid format");
     static ref PARSED_SCHEMA: Value =
         serde_json::from_str(include_str!("./mozlog_schema.json")).expect("schema json is invalid");
