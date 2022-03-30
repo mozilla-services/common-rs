@@ -14,4 +14,4 @@ travis-ci = { repository = "mozilla-services/common-rs" }
 [dependencies]
 lazy_static = "1.0"
 hostname = "0.3"
-reqwest = "0.9" # 0.10+ switches to async call for .send()
+reqwest = "0.11"
