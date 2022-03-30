@@ -44,7 +44,7 @@ fn test_format() {
     // magnitude, the below would fail. Gigaseconds are 1x10^9 seconds. 1
     // gigaseconds since epoch is sometime in the year 2001, and 4 gigaseconds
     // is in 2096.
-    let gigaseconds = events[0].timestamp / i128::pow(10, 18);
+    let gigaseconds = events[0].timestamp / i64::pow(10, 18);
     assert!(
         (1..=4).contains(&gigaseconds),
         "Should have a timestamp in this century"

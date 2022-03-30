@@ -1,7 +1,7 @@
 use gethostname::gethostname;
 use serde::{Deserialize, Serialize};
 use serde_json::Value;
-use std::{collections::HashMap, io::Write};
+use std::{collections::HashMap, io::Write, time::SystemTime};
 use tracing::{Event, Level, Subscriber};
 use tracing_bunyan_formatter::JsonStorage;
 use tracing_subscriber::{fmt::MakeWriter, layer::Context};
@@ -34,7 +34,7 @@ pub struct MozLogFormatLayer<W: for<'a> MakeWriter<'a> + 'static> {
 #[serde(rename_all = "PascalCase")]
 pub struct MozLogMessage {
     /// Number of nanoseconds since the UNIX epoch (which is UTC)
-    pub timestamp: i128,
+    pub timestamp: i64,
 
     /// Type of message i.e. "request.summary"
     #[serde(rename = "type")]
@@ -132,7 +132,7 @@ where
                 timestamp: SystemTime::now()
                     .duration_since(SystemTime::UNIX_EPOCH)
                     .unwrap_or_default()
-                    .as_nanos() as u64,
+                    .as_nanos() as i64,
                 message_type: type_field
                     .or(raw_type_field)
                     .and_then(|v| v.as_str().map(|s| s.to_string()))
