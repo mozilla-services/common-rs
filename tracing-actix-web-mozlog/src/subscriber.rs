@@ -22,7 +22,7 @@ const MOZLOG_VERSION: &str = "2.0";
 ///     .with(JsonStorageLayer)
 ///     .with(MozLogFormatLayer::new("service-name", std::io::stdout));
 /// ```
-pub struct MozLogFormatLayer<W: MakeWriter + 'static> {
+pub struct MozLogFormatLayer<W: for<'a> MakeWriter<'a> + 'static> {
     name: String,
     pid: u32,
     hostname: String,
@@ -59,7 +59,7 @@ pub struct MozLogMessage {
     pub fields: HashMap<String, Value>,
 }
 
-impl<W: MakeWriter + 'static> MozLogFormatLayer<W> {
+impl<W: for<'a> MakeWriter<'a> + 'static> MozLogFormatLayer<W> {
     /// Create a new moz log subscriber.
     pub fn new<S: AsRef<str>>(name: S, make_writer: W) -> Self {
         Self {
@@ -79,7 +79,7 @@ impl<W: MakeWriter + 'static> MozLogFormatLayer<W> {
 impl<S, W> tracing_subscriber::Layer<S> for MozLogFormatLayer<W>
 where
     S: Subscriber + for<'a> tracing_subscriber::registry::LookupSpan<'a>,
-    W: MakeWriter + 'static,
+    W: for<'a> MakeWriter<'a> + 'static,
 {
     fn on_event(&self, event: &Event<'_>, ctx: Context<'_, S>) {
         // Use a closure that returns a `Result` to enable usage of the `?`
