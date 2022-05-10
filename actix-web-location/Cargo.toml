@@ -22,7 +22,7 @@ anyhow = "1"
 async-trait = "0.1"
 lazy_static = "1"
 maxminddb = { version = "0.22", optional = true}
-cadence = { version = "0.28", optional = true}
+cadence = { version = "0.29", optional = true}
 
 [features]
 maxmind = ["maxminddb"]

@@ -102,7 +102,7 @@ pub struct LocationConfig {
 
     /// An optional sink to send metrics to.
     #[cfg(feature = "cadence")]
-    metrics: Arc<Option<Box<dyn cadence::CountedExt + Send + Sync>>>,
+    metrics: Option<Arc<dyn cadence::CountedExt + Send + Sync>>,
 }
 
 lazy_static! {
@@ -120,9 +120,9 @@ impl LocationConfig {
     #[cfg(feature = "cadence")]
     pub fn with_metrics<M: cadence::CountedExt + Send + Sync + 'static>(
         mut self,
-        metrics: M,
+        metrics: Arc<M>,
     ) -> Self {
-        self.metrics = Arc::new(Some(Box::new(metrics)));
+        self.metrics = Some(metrics);
         self
     }
 
