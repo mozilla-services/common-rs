@@ -1,6 +1,6 @@
 [package]
 name = "actix-web-location"
-version = "0.6.0"
+version = "0.7.0"
 description = "A extensible crate to provide location determination for actix-web, using GeoIP or other techniques"
 license = "MPL-2.0"
 edition = "2021"
