@@ -19,7 +19,7 @@ workflows:
 jobs:
   per-crate:
     docker:
-      - image: rust:1
+      - image: rust:latest
     parameters:
       crate:
         description: The crate to build and test. Passed to cargo with `-p`.
@@ -49,7 +49,7 @@ jobs:
 
   rustfmt:
     docker:
-      - image: rust:1
+      - image: rust:latest
     steps:
       - checkout
       - run:
@@ -61,7 +61,7 @@ jobs:
 
   audit:
     docker:
-      - image: rust:1
+      - image: rust:latest
     steps:
       - checkout
       - run:
