@@ -1,3 +1,12 @@
+<a name="0.7.0"></a>
+## 0.7.0 (2022-05-10)
+
+
+#### Bug Fixes
+
+*   have with_metrics take an Arc<dyn CountedExt> (#48) ([81b3b0f2](https://github.com/mozilla-services/common-rs/commit/81b3b0f292c8036e44396507f03c723c561e6891), closes [#47](https://github.com/mozilla-services/common-rs/issues/47))
+
+
 <a name="0.5.1"></a>
 
 ## 0.5.1 (2022-01-11)
