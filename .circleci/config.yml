@@ -19,7 +19,7 @@ workflows:
 jobs:
   per-crate:
     docker:
-      - image: mozilla/cidockerbases:rust-latest
+      - image: rust:latest
     parameters:
       crate:
         description: The crate to build and test. Passed to cargo with `-p`.
@@ -29,6 +29,11 @@ jobs:
       CRATE: << parameters.crate >>
     steps:
       - checkout
+      - run:
+          name: Setup Rust
+          command: |
+            cargo install cargo-hack
+            rustup component add clippy
       - run:
           name: Clippy
           command: cargo hack --feature-powerset clippy -p << parameters.crate >>
@@ -44,18 +49,24 @@ jobs:
 
   rustfmt:
     docker:
-      - image: mozilla/cidockerbases:rust-latest
+      - image: rust:latest
     steps:
       - checkout
+      - run:
+          name: Setup Rust
+          command: rustup component add rustfmt
       - run:
           name: Rustfmt
           command: cargo fmt --all -- --check
 
   audit:
     docker:
-      - image: mozilla/cidockerbases:rust-latest
+      - image: rust:latest
     steps:
       - checkout
+      - run:
+          name: Setup Rust
+          command: cargo install cargo-audit
       - run:
           name: Cargo audit
           command: cargo audit
