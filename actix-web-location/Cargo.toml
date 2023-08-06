@@ -33,3 +33,9 @@ actix-web-v4 = ["actix-web-4"]
 
 [dev_dependencies]
 actix-rt = "2.2"
+actix-web-4 = { package = "actix-web", version = "4" }
+maxminddb = "0.22"
+
+[[example]]
+name = "maxmind"
+required-features = ["actix-web-4", "maxmind"]
