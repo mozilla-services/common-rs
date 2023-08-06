@@ -2,6 +2,7 @@
 
 #![warn(missing_docs)]
 #![forbid(unsafe_code)]
+#![cfg_attr(docsrs, feature(doc_auto_cfg))]
 
 /* This is a mess, but it makes the rest of the crate tidier. Only include this
  * modules and uses if exactly one of v3 or v4 is specified. */
@@ -58,7 +59,7 @@ mod warning {
 /* If neither v3 or v4 are enabled at the same time, generate a compiler warning. */
 #[cfg(not(any(feature = "actix-web-v3", feature = "actix-web-v4")))]
 mod warning {
-    #![allow(dead_code)]
+    #![allow(dead_code, deprecated)]
 
     #[deprecated(note = "Exactly of actix-web-v3 or actix-web-v4 must be specified")]
     fn actix_web_location_must_specify_one_version_of_actix_web() {}
