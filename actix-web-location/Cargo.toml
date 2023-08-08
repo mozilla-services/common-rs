@@ -11,6 +11,7 @@ homepage = "https://github.com/mozilla-services/common-rs/tree/master/actix-web-
 [package.metadata.docs.rs]
 # features that docs.rs will build with
 features = ["actix-web-v4", "maxminddb"]
+rustdoc-args = ["--cfg", "docsrs"]
 
 [dependencies]
 serde = { version = "1", optional = true, features = ["derive"] }
@@ -32,3 +33,9 @@ actix-web-v4 = ["actix-web-4"]
 
 [dev_dependencies]
 actix-rt = "2.2"
+actix-web-4 = { package = "actix-web", version = "4" }
+maxminddb = "0.22"
+
+[[example]]
+name = "maxmind"
+required-features = ["actix-web-4", "maxmind"]

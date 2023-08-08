@@ -3,4 +3,5 @@ ignore = [
     # Older versions of Tokio are vulnerable to a race condition when using oneshot channels.
     # This repository doesn't use oneshot channels, so we are not vulnerable.
     "RUSTSEC-2021-0124", # Tokio 0.1.22 and 0.2.25 - Potential data race.
+    "RUSTSEC-2023-0034", # `h2` Memory DoS - remove after actix-http v3.4 release
 ]
