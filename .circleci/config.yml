@@ -36,13 +36,19 @@ jobs:
             rustup component add clippy
       - run:
           name: Clippy
-          command: cargo hack --feature-powerset clippy -p << parameters.crate >>
+          command: |
+            cargo hack --feature-powerset --exclude-features actix-web-v3 clippy -p << parameters.crate >>
+            cargo hack --feature-powerset --exclude-features actix-web-v4 clippy -p << parameters.crate >>
       - run:
           name: Cargo build
-          command: cargo hack --feature-powerset build -p << parameters.crate >>
+          command: |
+            cargo hack --feature-powerset --exclude-features actix-web-v3 build -p << parameters.crate >>
+            cargo hack --feature-powerset --exclude-features actix-web-v4 build -p << parameters.crate >>
       - run:
           name: Cargo test
-          command: cargo hack --feature-powerset test -p << parameters.crate >> --verbose
+          command: |
+            cargo hack --feature-powerset --exclude-features actix-web-v3 test -p << parameters.crate >> --verbose
+            cargo hack --feature-powerset --exclude-features actix-web-v4 test -p << parameters.crate >> --verbose
       - run:
           name: Cargo Doc
           command: cargo doc -p << parameters.crate >> --all-features
