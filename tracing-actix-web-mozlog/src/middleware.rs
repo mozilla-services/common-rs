@@ -172,7 +172,7 @@ impl RootSpanBuilder for MozLogRootSpanBuilder {
         );
 
         if let Some(user_agent) = request.headers().get("User-Agent") {
-            span.record("agent", &user_agent.to_str().unwrap_or("<bad_utf8>"));
+            span.record("agent", user_agent.to_str().unwrap_or("<bad_utf8>"));
         }
 
         span
@@ -183,14 +183,14 @@ impl RootSpanBuilder for MozLogRootSpanBuilder {
             Ok(response) => {
                 if let Some(req_start) = response.request().extensions().get::<RequestStart>() {
                     let elapsed = req_start.0.elapsed();
-                    span.record("t", &(elapsed.as_millis() as u32));
-                    span.record("t_ns", &(elapsed.as_nanos() as u64));
+                    span.record("t", elapsed.as_millis() as u32);
+                    span.record("t_ns", elapsed.as_nanos() as u64);
                 }
 
                 if let Some(error) = response.response().error() {
                     handle_error(span, error);
                 } else {
-                    span.record("code", &response.response().status().as_u16());
+                    span.record("code", response.response().status().as_u16());
                     response.status();
                 }
             }
@@ -205,7 +205,7 @@ impl RootSpanBuilder for MozLogRootSpanBuilder {
 fn handle_error(span: Span, error: &actix_web::Error) {
     let response_error = error.as_response_error();
     let status = response_error.status_code();
-    span.record("errno", &1);
+    span.record("errno", 1);
     span.record("msg", &tracing::field::display(response_error));
-    span.record("code", &status.as_u16());
+    span.record("code", status.as_u16());
 }
